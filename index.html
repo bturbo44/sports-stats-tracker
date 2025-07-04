@@ -214,6 +214,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
+console.log('Main script block started.');
 const BASKETBALL_METRICS = ['Points', 'Assists', 'Rebounds', 'Steals', 'Blocks', 'Turnovers', 'Fouls'];
 
 // Drills data and AI drill suggestion
@@ -891,7 +892,8 @@ window.logout = logout;
 window.updateMetricOptions = updateMetricOptions;
 
 // Netlify Identity Integration
-window.addEventListener('DOMContentLoaded', () => {
+function setupNetlifyIdentity() {
+  console.log('Attempting to set up Netlify Identity...');
   if (window.netlifyIdentity) {
     console.log('Netlify Identity widget found.');
 
@@ -925,9 +927,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     netlifyIdentity.init();
   } else {
-    console.log('Netlify Identity widget not found.');
+    console.log('Netlify Identity widget not found. Retrying in 1 second.');
+    setTimeout(setupNetlifyIdentity, 1000);
   }
-});
+}
+
+// Start the setup
+setupNetlifyIdentity();
 </script>
 </body>
 </html>
