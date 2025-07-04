@@ -207,12 +207,13 @@
       .glass, .ai-answer { padding: 0.8em 0.5em; }
     }
   </style>
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
   <div class="container" id="app"></div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ADMIN = { username: 'admin', password: 'test123' };
+
 const BASKETBALL_METRICS = ['Points', 'Assists', 'Rebounds', 'Steals', 'Blocks', 'Turnovers', 'Fouls'];
 
 // Drills data and AI drill suggestion
@@ -291,7 +292,12 @@ function renderApp() {
   // Apply dark mode
   document.body.style.background = state.dark ? '#222' : '';
   document.body.style.color = state.dark ? '#eee' : '';
-  if (!state.loggedIn) { renderLogin(); return; }
+
+  if (!state.loggedIn) {
+    renderLoginScreen();
+    return;
+  }
+
   let tabs = ['Dashboard', 'Add Stat', 'Trends', 'AI'];
   let tabBtns = tabs.map((t,i) => `<button class="tab${state.tab===i?' active':''}" onclick="setTab(${i})">${t}</button>`).join('');
   document.getElementById('app').innerHTML = `
@@ -306,29 +312,23 @@ function renderApp() {
   else if (state.tab === 2) { document.getElementById('tab-content').innerHTML = renderTrends(); drawChart(); }
   else if (state.tab === 3) document.getElementById('tab-content').innerHTML = renderAICombined();
 }
-function renderLogin() {
+
+function renderLoginScreen() {
   document.getElementById('app').innerHTML = `
-    <div style='padding:2rem 1rem;'>
-      <h2>Login</h2>
-      <input id="user" placeholder="Username" autofocus>
-      <input id="pass" type="password" placeholder="Password">
-      <div id="err" style="color:#c00;"></div>
-      <button onclick="login()">Login</button>
+    <div style='padding: 2rem 1rem; text-align: center;'>
+      <h2>Welcome to Sports Stats Tracker</h2>
+      <p>Log in or sign up to continue</p>
+      <div style='margin-top: 2rem;'>
+        <button onclick='netlifyIdentity.open("login")' style='width: auto; margin-right: 1rem;'>Log In</button>
+        <button onclick='netlifyIdentity.open("signup")' style='width: auto; background: #4caf50;'>Sign Up</button>
+      </div>
     </div>
   `;
 }
-function login() {
-  const u = document.getElementById('user').value;
-  const p = document.getElementById('pass').value;
-  if (u === ADMIN.username && p === ADMIN.password) {
-    state.loggedIn = true;
-    loadStats();
-    renderApp();
-  } else {
-    document.getElementById('err').innerText = 'Invalid login';
-  }
+
+function logout() {
+  netlifyIdentity.logout();
 }
-function logout() { state.loggedIn = false; state.tab = 0; renderLogin(); }
 function renderDashboard() {
   loadStats();
   // Onboarding modal for first-time users
@@ -888,6 +888,34 @@ window.submitStat = submitStat;
 window.cancelEdit = cancelEdit;
 window.logout = logout;
 window.updateMetricOptions = updateMetricOptions;
+
+// Netlify Identity Integration
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.netlifyIdentity) {
+    netlifyIdentity.on('init', user => {
+      if (user) {
+        state.loggedIn = true;
+        loadStats();
+      }
+      renderApp();
+    });
+
+    netlifyIdentity.on('login', user => {
+      state.loggedIn = true;
+      loadStats();
+      renderApp();
+      netlifyIdentity.close();
+    });
+
+    netlifyIdentity.on('logout', () => {
+      state.loggedIn = false;
+      state.tab = 0;
+      renderApp();
+    });
+
+    netlifyIdentity.init();
+  }
+});
 </script>
 </body>
 </html>
