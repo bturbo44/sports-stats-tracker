@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# IDE / OS specific
+.DS_Store
+
+# Temporary files
+*.bak
+*_clean.html
+
+# Deployment configs from other platforms
+windsurf_deployment.yaml

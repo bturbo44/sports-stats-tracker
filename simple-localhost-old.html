@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Sports Stats Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px #0001; }
+    h2 { text-align: center; }
+    input, select, textarea, button { width: 100%; margin: 8px 0; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    button { background: #1976d2; color: #fff; border: none; font-weight: 600; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+    th { background: #f0f0f0; }
+    .actions button { width: auto; margin-right: 4px; }
+    @media (max-width: 600px) { .container { padding: 8px; } }
+  </style>
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+const ADMIN = { username: 'admin', password: 'test123' };
+let state = { loggedIn: false, stats: [], editing: null };
+
+function saveStats() {
+  localStorage.setItem('simple_stats', JSON.stringify(state.stats));
+}
+function loadStats() {
+  const s = localStorage.getItem('simple_stats');
+  state.stats = s ? JSON.parse(s) : [];
+}
+function renderLogin() {
+  document.getElementById('app').innerHTML = `
+    <h2>Login</h2>
+    <input id="user" placeholder="Username" autofocus>
+    <input id="pass" type="password" placeholder="Password">
+    <div id="err" style="color:#c00;"></div>
+    <button onclick="login()">Login</button>
+  `;
+}
+function login() {
+  const u = document.getElementById('user').value;
+  const p = document.getElementById('pass').value;
+  if (u === ADMIN.username && p === ADMIN.password) {
+    state.loggedIn = true;
+    renderDashboard();
+  } else {
+    document.getElementById('err').innerText = 'Invalid login';
+  }
+}
+function renderDashboard() {
+  loadStats();
+  document.getElementById('app').innerHTML = `
+    <h2>Welcome, Admin!</h2>
+    <button onclick="renderForm()">Add New Stat Entry</button>
+    <button onclick="logout()" style="background:#888;float:right;width:auto;">Log Out</button>
+    <table><thead><tr><th>Date</th><th>Sport</th><th>Stat Type</th><th>Value</th><th>Notes</th><th>Actions</th></tr></thead><tbody>
+      ${state.stats.length ? state.stats.map((s,i) => `<tr><td>${s.date}</td><td>${s.sport}</td><td>${s.type}</td><td>${s.value}</td><td>${s.notes||''}</td><td class='actions'><button onclick='editStat(${i})'>Edit</button><button onclick='delStat(${i})' style='background:#c00;'>Delete</button></td></tr>`).join('') : `<tr><td colspan=6 style='text-align:center;color:#888;'>No stats yet.</td></tr>`}
+    </tbody></table>
+  `;
+}
+function renderForm(editIdx) {
+  let s = { date: new Date().toISOString().slice(0,10), sport: 'Basketball', type: '', value: '', notes: '' };
+  if (typeof editIdx === 'number') s = state.stats[editIdx];
+  document.getElementById('app').innerHTML = `
+    <h2>${typeof editIdx==='number'?'Edit':'Add New'} Stat Entry</h2>
+    <form onsubmit="submitStat(event,${editIdx===undefined?'null':editIdx})">
+      <label>Date<input name="date" type="date" value="${s.date}" required></label>
+      <label>Sport<select name="sport">
+        <option${s.sport==='Basketball'?' selected':''}>Basketball</option>
+        <option${s.sport==='Soccer'?' selected':''}>Soccer</option>
+        <option${s.sport==='Baseball'?' selected':''}>Baseball</option>
+        <option${s.sport==='Custom'?' selected':''}>Custom</option>
+      </select></label>
+      <label>Stat Type<input name="type" value="${s.type}" required></label>
+      <label>Value<input name="value" type="number" value="${s.value}" required></label>
+      <label>Notes<textarea name="notes">${s.notes||''}</textarea></label>
+      <button type="submit">${typeof editIdx==='number'?'Save':'Add'}</button>
+      <button type="button" onclick="renderDashboard()" style="background:#888;">Cancel</button>
+    </form>
+  `;
+}
+function submitStat(e, idx) {
+  e.preventDefault();
+  const f = e.target;
+  const stat = {
+    date: f.date.value,
+    sport: f.sport.value,
+    type: f.type.value,
+    value: f.value.value,
+    notes: f.notes.value
+  };
+  loadStats();
+  if (idx === null) state.stats.unshift(stat);
+  else state.stats[idx] = stat;
+  saveStats();
+  renderDashboard();
+}
+function editStat(idx) { renderForm(idx); }
+function delStat(idx) { if(confirm('Delete this entry?')) { loadStats(); state.stats.splice(idx,1); saveStats(); renderDashboard(); } }
+function logout() { state.loggedIn = false; renderLogin(); }
+
+// Initial render
+renderLogin();
+window.login = login;
+window.renderDashboard = renderDashboard;
+window.renderForm = renderForm;
+window.submitStat = submitStat;
+window.editStat = editStat;
+window.delStat = delStat;
+window.logout = logout;
+</script>
+</body>
+</html>

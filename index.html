@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sports Stats Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #f7f7f7 100%);
+      margin: 0;
+      min-height: 100vh;
+      transition: background 0.4s;
+      position: relative;
+      overflow-x: hidden;
+    }
+    /* Animated floating shapes */
+    .bg-shape {
+      position: fixed;
+      z-index: 0;
+      opacity: 0.18;
+      filter: blur(2px);
+      pointer-events: none;
+      animation: float 12s ease-in-out infinite alternate;
+    }
+    .bg-shape1 {
+      left: -80px; top: 60px; width: 320px; height: 320px; background: radial-gradient(circle at 60% 50%, #a5b4fc 70%, #fff0 100%); border-radius: 50%; animation-delay: 0s;}
+    .bg-shape2 {
+      right: -120px; top: 400px; width: 380px; height: 340px; background: radial-gradient(circle at 40% 60%, #fbc2eb 60%, #fff0 100%); border-radius: 50%; animation-delay: 3s;}
+    .bg-shape3 {
+      left: 50%; top: 85vh; width: 340px; height: 220px; background: radial-gradient(circle at 50% 50%, #f7b2ff 50%, #fff0 100%); border-radius: 50%; transform: translateX(-50%); animation-delay: 6s;}
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-30px) scale(1.07); }
+    }
+    .container {
+      max-width: 650px;
+      margin: 40px auto;
+      background: rgba(255,255,255,0.80);
+      padding: 0;
+      border-radius: 22px;
+      box-shadow: 0 8px 40px 0 #0001, 0 1.5px 8px #1976d220;
+      backdrop-filter: blur(6px);
+      overflow: hidden;
+      transition: background 0.4s, box-shadow 0.3s;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1.5px solid #e3eafc;
+      background: rgba(245,248,250,0.95);
+      border-radius: 22px 22px 0 0;
+      box-shadow: 0 2px 8px #1976d210;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .tab {
+      flex: 1;
+      padding: 1.1rem 0.7rem;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 700;
+      color: #4251af;
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 1.08em;
+      letter-spacing: 0.01em;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      border-bottom: 3px solid transparent;
+      border-radius: 22px 22px 0 0;
+    }
+    .tab.active {
+      background: linear-gradient(90deg,#e3eafc 60%,#f7fafd 100%);
+      color: #1976d2;
+      border-bottom: 3px solid #1976d2;
+      box-shadow: 0 2px 8px #1976d220;
+      z-index: 1;
+    }
+    .tab:not(.active):hover {
+      background: #f0f4fa;
+      color: #1b2a6d;
+    }
+    .tab-content {
+      padding: 2.2rem 2rem 2rem 2rem;
+      animation: fadein 0.5s;
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateY(16px);} to { opacity: 1; transform: none;}}
+    h2 {
+      margin-top: 0;
+      font-weight: 800;
+      color: #2a347b;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 0 #fff;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1.3px solid #b9c6e6;
+      font-size: 1em;
+      background: #f7fafd;
+      box-shadow: 0 1px 2px #1976d208 inset;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #1976d2;
+      outline: none;
+      box-shadow: 0 0 0 2px #1976d230;
+    }
+    button {
+      background: linear-gradient(90deg, #1976d2 60%, #4251af 100%);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+      box-shadow: 0 2px 8px #1976d210;
+      border-radius: 8px;
+      letter-spacing: 0.02em;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #1250a9 60%, #28316b 100%);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 4px 16px #1976d220;
+    }
+    .actions button {
+      width: auto;
+      margin-right: 4px;
+      padding: 7px 14px;
+      font-size: 0.97em;
+      border-radius: 6px;
+    }
+    .logout-btn {
+      background: #888;
+      float: right;
+      width: auto;
+      margin-top: -1.5rem;
+      margin-right: 0.8rem;
+      font-size: 0.97em;
+      border-radius: 8px;
+      padding: 7px 14px;
+      box-shadow: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 1rem;
+      background: rgba(255,255,255,0.85);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px #1976d210;
+      font-size: 1.01em;
+    }
+    th, td {
+      border: none;
+      padding: 9px 8px;
+      text-align: left;
+      font-size: 0.99em;
+    }
+    th {
+      background: #e3eafc;
+      color: #28316b;
+      font-weight: 700;
+      border-bottom: 2.5px solid #b9c6e6;
+    }
+    tr:nth-child(even) td { background: #f7fafd; }
+    tr:hover td { background: #e3eafc; transition: background 0.2s; }
+    .chart-container { margin: 1.5rem 0; text-align: center; }
+    .glass {
+      background: rgba(255,255,255,0.75);
+      border-radius: 14px;
+      box-shadow: 0 2px 14px #1976d210;
+      padding: 1.2em 1em;
+      margin-bottom: 1.5em;
+    }
+    .ai-answer {
+      margin-top: 1.5em;
+      background: linear-gradient(120deg,#e3eafc 60%,#f7fafd 100%);
+      border-radius: 12px;
+      padding: 1.2em 1em;
+      box-shadow: 0 1px 8px #1976d210;
+      font-size: 1.08em;
+      color: #2a347b;
+      animation: fadein 0.5s;
+    }
+    .ai-error {
+      color: #c00;
+      background: #fff0f0;
+      border-radius: 8px;
+      padding: 1em;
+      margin-top: 1em;
+      box-shadow: 0 1px 8px #c002;
+      font-size: 1.02em;
+    }
+    .ai-loading {
+      color: #1976d2;
+      font-weight: 700;
+      margin-top: 1em;
+      font-size: 1.08em;
+    }
+    @media (max-width: 700px) {
+      .container { max-width: 100%; margin: 0; border-radius: 0; }
+      .tab-content { padding: 1rem 0.5rem; }
+      h2 { font-size: 1.2em; }
+      th, td { font-size: 0.96em; }
+      .glass, .ai-answer { padding: 0.8em 0.5em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app"></div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ADMIN = { username: 'admin', password: 'test123' };
+const BASKETBALL_METRICS = ['Points', 'Assists', 'Rebounds', 'Steals', 'Blocks', 'Turnovers', 'Fouls'];
+
+// Drills data and AI drill suggestion
+const DRILLS = [
+  { name: 'Free Throws', desc: 'Shoot 25 free throws, record makes.' },
+  { name: 'Layup Lines', desc: 'Alternate strong/weak hand layups for 5 minutes.' },
+  { name: '3-Point Shooting', desc: 'Shoot 5 from each spot, record makes.' },
+  { name: 'Defensive Slides', desc: '2 sets of 30 seconds, focus on quick feet.' },
+  { name: 'Ball Handling', desc: '2 minutes crossover, 2 minutes behind-the-back.' }
+];
+
+function renderDrills() { return ''; } // No longer used; replaced by renderAICombined
+// Add more helper functions and UI for custom sports/metrics, photo upload, achievements, onboarding, etc. here as needed.
+
+let state = { loggedIn: false, tab: 0, stats: [], editing: null, filterSport: '', filterFrom: '', filterTo: '', filterYear: '', filterMetric: '', dark: false, aiLoading: false, aiAnswer: '', aiError: '' };
+
+
+function saveStats() {
+  localStorage.setItem('sports_stats', JSON.stringify(state.stats));
+}
+function loadStats() {
+  let raw = localStorage.getItem('sports_stats');
+  if (!raw) {
+    // Demo basketball stats: each game has all metrics
+    state.stats = [
+      // Game 1
+      {date:'2025-06-01',sport:'Basketball',type:'Points',value:24,notes:'Season opener'},
+      {date:'2025-06-01',sport:'Basketball',type:'Assists',value:5,notes:''},
+      {date:'2025-06-01',sport:'Basketball',type:'Rebounds',value:8,notes:''},
+      {date:'2025-06-01',sport:'Basketball',type:'Steals',value:2,notes:''},
+      {date:'2025-06-01',sport:'Basketball',type:'Blocks',value:1,notes:''},
+      {date:'2025-06-01',sport:'Basketball',type:'Turnovers',value:3,notes:''},
+      {date:'2025-06-01',sport:'Basketball',type:'Fouls',value:2,notes:''},
+      // Game 2
+      {date:'2025-06-03',sport:'Basketball',type:'Points',value:18,notes:''},
+      {date:'2025-06-03',sport:'Basketball',type:'Assists',value:7,notes:''},
+      {date:'2025-06-03',sport:'Basketball',type:'Rebounds',value:10,notes:''},
+      {date:'2025-06-03',sport:'Basketball',type:'Steals',value:1,notes:''},
+      {date:'2025-06-03',sport:'Basketball',type:'Blocks',value:0,notes:''},
+      {date:'2025-06-03',sport:'Basketball',type:'Turnovers',value:2,notes:''},
+      {date:'2025-06-03',sport:'Basketball',type:'Fouls',value:3,notes:''},
+      // Game 3
+      {date:'2025-06-05',sport:'Basketball',type:'Points',value:30,notes:'Career high!'},
+      {date:'2025-06-05',sport:'Basketball',type:'Assists',value:4,notes:''},
+      {date:'2025-06-05',sport:'Basketball',type:'Rebounds',value:11,notes:''},
+      {date:'2025-06-05',sport:'Basketball',type:'Steals',value:3,notes:''},
+      {date:'2025-06-05',sport:'Basketball',type:'Blocks',value:2,notes:''},
+      {date:'2025-06-05',sport:'Basketball',type:'Turnovers',value:1,notes:''},
+      {date:'2025-06-05',sport:'Basketball',type:'Fouls',value:1,notes:''}
+    ];
+    saveStats();
+  } else {
+    state.stats = JSON.parse(raw);
+  }
+}
+function setTab(idx) {
+  state.tab = idx;
+  // Clear AI state when leaving the AI tab
+  if (idx !== 3) {
+    state.aiLoading = false;
+    state.aiAnswer = '';
+    state.aiError = '';
+  }
+  renderApp();
+}
+
+window.setFilterYear = function(y) {
+  state.filterYear = y;
+  renderDashboard();
+};
+window.setFilterMetric = function(m) {
+  state.filterMetric = m;
+  renderDashboard();
+};
+function renderApp() {
+  // Apply dark mode
+  document.body.style.background = state.dark ? '#222' : '';
+  document.body.style.color = state.dark ? '#eee' : '';
+  if (!state.loggedIn) { renderLogin(); return; }
+  let tabs = ['Dashboard', 'Add Stat', 'Trends', 'AI'];
+  let tabBtns = tabs.map((t,i) => `<button class="tab${state.tab===i?' active':''}" onclick="setTab(${i})">${t}</button>`).join('');
+  document.getElementById('app').innerHTML = `
+    <div class="tabs">${tabBtns}<button class='logout-btn' onclick='logout()'>Log Out</button></div>
+    <div id="dashboard-content"></div>
+    <div id="demo-expand-holder"></div>
+    <div id="tab-content"></div>
+  `;
+  // Show only the selected tab content
+  if (state.tab === 0) renderDashboard();
+  else if (state.tab === 1) document.getElementById('tab-content').innerHTML = renderForm();
+  else if (state.tab === 2) { document.getElementById('tab-content').innerHTML = renderTrends(); drawChart(); }
+  else if (state.tab === 3) document.getElementById('tab-content').innerHTML = renderAICombined();
+}
+function renderLogin() {
+  document.getElementById('app').innerHTML = `
+    <div style='padding:2rem 1rem;'>
+      <h2>Login</h2>
+      <input id="user" placeholder="Username" autofocus>
+      <input id="pass" type="password" placeholder="Password">
+      <div id="err" style="color:#c00;"></div>
+      <button onclick="login()">Login</button>
+    </div>
+  `;
+}
+function login() {
+  const u = document.getElementById('user').value;
+  const p = document.getElementById('pass').value;
+  if (u === ADMIN.username && p === ADMIN.password) {
+    state.loggedIn = true;
+    loadStats();
+    renderApp();
+  } else {
+    document.getElementById('err').innerText = 'Invalid login';
+  }
+}
+function logout() { state.loggedIn = false; state.tab = 0; renderLogin(); }
+function renderDashboard() {
+  loadStats();
+  // Onboarding modal for first-time users
+  if (!state.onboardingShown) {
+    document.body.insertAdjacentHTML('beforeend', `<div id='onboarding-modal' style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;'>
+      <div style='background:#fff;padding:2em 2em 1.2em 2em;border-radius:12px;max-width:400px;text-align:center;'>
+        <h2>Welcome to Sports Tracker!</h2>
+        <p>Track your stats, get AI-powered advice, and improve your game.<br><br>Try adding a stat, exploring achievements, and asking the AI for drills or tips.</p>
+        <button onclick='closeOnboarding()' style='margin-top:1em;'>Get Started</button>
+      </div>
+    </div>`);
+    window.closeOnboarding = function() {
+      state.onboardingShown = true;
+      localStorage.setItem('onboardingShown', '1');
+      document.getElementById('onboarding-modal').remove();
+      renderDashboard();
+    }
+    return;
+  }
+  const stats = state.stats;
+  const contentDiv = document.getElementById('dashboard-content');
+  const demoDiv = document.getElementById('demo-expand-holder');
+  // Achievements section
+  let achievements = computeAchievements();
+  let achievementsHtml = `<div class='glass' style='margin-bottom:1.2em;background:#f7fafd;'><h3>🏆 Achievements</h3><ul style='margin:0 0 0.5em 1.1em;'>` +
+    achievements.map(a=>`<li>${a.earned?"✅":"⬜️"} <b>${a.title}</b> <span style='color:#888;'>${a.desc}</span></li>`).join('') + '</ul></div>';
+  // Group basketball stats by date
+  let games = {};
+  stats.filter(s=>s.sport==='Basketball').forEach(s => {
+    if (!games[s.date]) games[s.date] = {date: s.date, notes: s.notes, stats: {}};
+    games[s.date].stats[s.type] = s.value;
+    if (s.notes) games[s.date].notes = s.notes;
+  });
+  let gameDates = Object.keys(games).sort().reverse();
+
+  // --- FILTERS ---
+  // Get unique years
+  let years = [...new Set(stats.filter(s=>s.sport==='Basketball').map(s=>s.date.substring(0,4)))].sort().reverse();
+  let metrics = BASKETBALL_METRICS;
+  // Apply filters
+  let filteredDates = gameDates.filter(date => {
+    let pass = true;
+    if (state.filterYear && !date.startsWith(state.filterYear)) pass = false;
+    if (state.filterFrom && date < state.filterFrom) pass = false;
+    if (state.filterTo && date > state.filterTo) pass = false;
+    return pass;
+  });
+  // Dashboard table: one row per game, expand for all stats
+  contentDiv.innerHTML = `
+    ${achievementsHtml}
+    <h2>Basketball Games</h2>
+    <div style='display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;'>
+      <label>Year
+        <select onchange='setFilterYear(this.value)'>
+          <option value=''>All</option>
+          ${years.map(y=>`<option value='${y}' ${state.filterYear===y?'selected':''}>${y}</option>`).join('')}
+        </select>
+      </label>
+      <label>Metric
+        <select onchange='setFilterMetric(this.value)'>
+          <option value=''>All</option>
+          ${metrics.map(m=>`<option value='${m}' ${state.filterMetric===m?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </label>
+      <label>From <input type='date' onchange='setFilterFrom(this.value)' value='${state.filterFrom}'></label>
+      <label>To <input type='date' onchange='setFilterTo(this.value)' value='${state.filterTo}'></label>
+      <button onclick='clearFilters()' style='width:auto;background:#888;'>Clear</button>
+      <button onclick='exportCSV()' style='width:auto;background:#2e7d32;'>Export CSV</button>
+      <button onclick='toggleDark()' style='width:auto;background:#222;'>${state.dark?'Light':'Dark'} Mode</button>
+    </div>
+    <table style='width:100%;background:transparent;box-shadow:none;'>
+      <thead><tr><th>Date</th>${state.filterMetric ? `<th>${state.filterMetric}</th>` : `<th>Points</th><th>Assists</th>`}<th>Expand</th></tr></thead>
+      <tbody>
+        ${filteredDates.length ? filteredDates.map((d,idx) => {
+          let g = games[d];
+          return `<tr class='game-row'><td>${d}</td>${state.filterMetric ? `<td>${g.stats[state.filterMetric]!==undefined?g.stats[state.filterMetric]:0}</td>` : `<td>${g.stats['Points']||0}</td><td>${g.stats['Assists']||0}</td>`}<td><button onclick='toggleGameExpand("${d}")' id='expand-btn-${d}'>▼</button></td></tr>
+            <tr id='expand-row-${d}' style='display:none;background:#f7fafd;'><td colspan='${state.filterMetric?3:4}' style='padding:0;'>
+              <div class='glass' style='margin:0.5em 0.5em;'>
+                <b>Full Stats:</b><br>
+                ${BASKETBALL_METRICS.map(m=>`${basketballMetricIcon(m)} <b>${m}:</b> ${g.stats[m]!==undefined?g.stats[m]:0}`).join(' &nbsp; ')}
+                ${g.notes?`<br><b>Notes:</b> ${g.notes}`:''}
+              </div>
+            </td></tr>`;
+        }).join('') : `<tr><td colspan=4 style='text-align:center;color:#888;'>No games found.</td></tr>`}
+      </tbody>
+    </table>
+    <script>
+      window.toggleGameExpand = function(date) {
+        var row = document.getElementById('expand-row-'+date);
+        var btn = document.getElementById('expand-btn-'+date);
+        if (!row || !btn) return;
+        if (row.style.display==='none') { row.style.display='table-row'; btn.innerHTML='▲'; }
+        else { row.style.display='none'; btn.innerHTML='▼'; }
+      }
+    <\/script>
+  `;
+}
+
+// Global expand/collapse handler for dashboard
+window.toggleGameExpand = function(date) {
+  var row = document.getElementById('expand-row-'+date);
+  var btn = document.getElementById('expand-btn-'+date);
+  if (!row || !btn) return;
+  if (row.style.display==='none') { row.style.display='table-row'; btn.innerHTML='▲'; }
+  else { row.style.display='none'; btn.innerHTML='▼'; }
+};
+
+function setFilterSport(val){state.filterSport=val;renderApp();}
+function setFilterFrom(val){state.filterFrom=val;renderApp();}
+function setFilterTo(val){state.filterTo=val;renderApp();}
+function clearFilters(){state.filterSport='';state.filterFrom='';state.filterTo='';renderApp();}
+function exportCSV() {
+  let rows = [['Date','Sport','Stat Type','Value','Notes']].concat(state.stats.map(s=>[s.date,s.sport,s.type,s.value,s.notes||'']));
+  let csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  let blob = new Blob([csv],{type:'text/csv'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'stats.csv';
+  a.click();
+}
+function toggleDark() {
+  state.dark = !state.dark;
+  localStorage.setItem('darkMode', state.dark?'1':'');
+  renderApp();
+}
+// On startup, load dark mode and onboarding state
+(function(){
+  if (localStorage.getItem('darkMode')==='1') state.dark = true;
+  if (localStorage.getItem('onboardingShown')==='1') state.onboardingShown = true;
+})();
+
+function computeAchievements() {
+  // Example: 10 games played, career high points, etc.
+  let stats = state.stats.filter(s=>s.sport==='Basketball');
+  let gamesPlayed = new Set(stats.map(s=>s.date)).size;
+  let maxPoints = Math.max(0, ...stats.filter(s=>s.type==='Points').map(s=>s.value));
+  let ach = [
+    {title:"10 Games Played",desc:"Log stats for 10 games",earned:gamesPlayed>=10},
+    {title:"Career High Points",desc:`Score 25+ in a game (your best: ${maxPoints})`,earned:maxPoints>=25},
+    {title:"First Stat",desc:"Log your very first stat",earned:gamesPlayed>=1}
+  ];
+  return ach;
+}
+
+function renderForm() {
+  let today = new Date().toISOString().slice(0,10);
+  let s = { date: today, sport: 'Basketball', type: '', value: '', notes: '', photo: '' };
+  let editIdx = null;
+  if (state.editing !== null) { s = state.stats[state.editing]; editIdx = state.editing; }
+  // Basketball: multi-metric form
+  if (s.sport === 'Basketball' && editIdx === null) {
+    return `
+      <h2 style='background:linear-gradient(90deg,#e0eafc 70%,#f7fafd 100%);padding:1.1em 1em 0.7em 1em;border-radius:16px 16px 0 0;box-shadow:0 2px 12px #a5b4fc22;'>Add Basketball Game</h2>
+      <form class='glass' style='max-width:540px;margin:0 auto;' onsubmit="submitBasketballGame(event)">
+        <div style='display:flex;gap:1em;flex-wrap:wrap;'>
+          <label style='flex:1 1 180px;'>Date<input name="date" type="date" value="${today}" required></label>
+          <label style='flex:1 1 180px;'>Notes<textarea name="notes"></textarea></label>
+        </div>
+        <div style='margin-top:1em;'>
+          <label>Photo (optional): <input type="file" accept="image/*" name="photo" onchange="handlePhotoUpload(event)"></label>
+        </div>
+        <div style='display:grid;grid-template-columns:repeat(3,1fr);gap:1.2em 1em;margin-top:1.3em;'>
+          ${BASKETBALL_METRICS.map(m => `
+            <label style='display:flex;align-items:center;gap:0.5em;font-weight:600;'>
+              <span style='font-size:1.25em;'>${basketballMetricIcon(m)}</span> ${m}
+              <input name="${m.toLowerCase()}" type="number" min="0" style='width:70px;margin-left:auto;' placeholder="0">
+            </label>`).join('')}
+        </div>
+        <button type="submit" style='margin-top:1.5em;font-size:1.08em;'><span style='font-size:1.1em;'>🏀</span> Add Game</button>
+        <button type="button" onclick="cancelEdit()" style="background:#888;margin-top:1.5em;">Cancel</button>
+      </form>
+    `;
+  }
+  // Other sports: single-metric form
+
+  let metricOptions = (s.sport === 'Basketball' ? BASKETBALL_METRICS : ['Points','Stat'])
+    .map(m => `<option${s.type===m?' selected':''}>${m}</option>`).join('');
+  return `
+    <h2>${editIdx!==null?'Edit':'Add New'} Stat Entry</h2>
+    <form onsubmit="submitStat(event,${editIdx===null?'null':editIdx})">
+      <label>Date<input name="date" type="date" value="${s.date}" required></label>
+      <label>Sport<select name="sport" onchange="updateMetricOptions(this.value)">
+        <option${s.sport==='Basketball'?' selected':''}>Basketball</option>
+        <option${s.sport==='Soccer'?' selected':''}>Soccer</option>
+        <option${s.sport==='Baseball'?' selected':''}>Baseball</option>
+        <option${s.sport==='Custom'?' selected':''}>Custom</option>
+      </select></label>
+      <label>Stat Type<select name="type" id="statTypeSel">${metricOptions}</select></label>
+      <label>Value<input name="value" type="number" value="${s.value}" required></label>
+      <label>Notes<textarea name="notes">${s.notes||''}</textarea></label>
+      <label>Photo (optional): <input type="file" accept="image/*" name="photo" onchange="handlePhotoUpload(event)"></label>
+      <button type="submit">${editIdx!==null?'Save':'Add'}</button>
+      <button type="button" onclick="cancelEdit()" style="background:#888;">Cancel</button>
+    </form>
+  `;
+}
+
+// Handle photo upload (base64 encode and store in state.tempPhoto)
+window.handlePhotoUpload = function(e) {
+  const file = e.target.files[0];
+  if (!file) { state.tempPhoto = ''; return; }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    state.tempPhoto = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+function basketballMetricIcon(m) {
+  switch(m) {
+    case 'Points': return '🎯';
+    case 'Assists': return '🤝';
+    case 'Rebounds': return '🛡️';
+    case 'Steals': return '🦅';
+    case 'Blocks': return '⛔';
+    case 'Turnovers': return '🔄';
+    default: return '';
+  }
+}
+
+function submitBasketballGame(e) {
+  e.preventDefault();
+  const f = e.target;
+  const date = f.date.value;
+  const notes = f.notes.value;
+  let statsToAdd = [];
+  let photo = state.tempPhoto || '';
+  BASKETBALL_METRICS.forEach(m => {
+    let val = f[m.toLowerCase()].value;
+    if (val && !isNaN(val)) {
+      statsToAdd.push({
+        date,
+        sport: 'Basketball',
+        type: m,
+        value: val,
+        notes: notes,
+        photo: photo
+      });
+    }
+  });
+  loadStats();
+  statsToAdd.forEach(stat => state.stats.unshift(stat));
+  saveStats();
+  state.editing = null;
+  state.tab = 0;
+  state.tempPhoto = '';
+  renderApp();
+}
+
+function updateMetricOptions(sport) {
+  let sel = document.getElementById('statTypeSel');
+  let opts = (sport === 'Basketball' ? BASKETBALL_METRICS : ['Points','Stat'])
+    .map(m => `<option>${m}</option>`).join('');
+  sel.innerHTML = opts;
+}
+
+function submitStat(e, idx) {
+  e.preventDefault();
+  const f = e.target;
+  const stat = {
+    date: f.date.value,
+    sport: f.sport.value,
+    type: f.type.value,
+    value: f.value.value,
+    notes: f.notes.value,
+    photo: state.tempPhoto || ''
+  };
+  loadStats();
+  if (idx === null) state.stats.unshift(stat);
+  else state.stats[idx] = stat;
+  state.editing = null;
+  saveStats();
+  state.tab = 0;
+  state.tempPhoto = '';
+  renderApp();
+}
+
+function editStat(idx) { state.editing = idx; state.tab = 1; renderApp(); }
+function delStat(idx) { if(confirm('Delete this entry?')) { loadStats(); state.stats.splice(idx,1); saveStats(); renderApp(); } }
+function cancelEdit() { state.editing = null; state.tab = 0; renderApp(); }
+
+function renderTrends() {
+  loadStats();
+  if (!state.stats.length) return `<h2>Trends</h2><div style='text-align:center;color:#888;'>No stats yet.</div>`;
+  // Group all Basketball stats by date/game
+  let games = {};
+  state.stats.filter(s => s.sport==='Basketball').forEach(s => {
+    if (!games[s.date]) games[s.date] = {};
+    games[s.date][s.type] = Number(s.value);
+  });
+  let dates = Object.keys(games).sort();
+  // Prepare chart data: one line per metric
+  let datasets = BASKETBALL_METRICS.map((m,i) => ({
+    label: m,
+    data: dates.map(d => games[d][m] || 0),
+    borderColor: `hsl(${i*55},70%,45%)`,
+    backgroundColor: `hsl(${i*55},70%,85%)`,
+    fill: false,
+    tension: 0.2
+  }));
+  // Game summary table for latest game
+  let lastGame = games[dates[dates.length-1]] || {};
+  let summaryRows = BASKETBALL_METRICS.map(m => `<tr><td style='font-weight:600;'>${basketballMetricIcon(m)} ${m}</td><td>${lastGame[m]!==undefined?lastGame[m]:0}</td></tr>`).join('');
+  return `
+    <h2 style='background:linear-gradient(90deg,#e0eafc 70%,#f7fafd 100%);padding:1.1em 1em 0.7em 1em;border-radius:16px 16px 0 0;box-shadow:0 2px 12px #a5b4fc22;'>Trends / Games</h2>
+    <div class='glass' style='max-width:600px;margin:0 auto 1.5em auto;display:flex;gap:2em;justify-content:space-between;align-items:center;animation:fadein 0.7s;'>
+      <div style='flex:1;'>
+        <div style='font-size:1.12em;font-weight:700;color:#1976d2;letter-spacing:0.01em;margin-bottom:0.6em;'>Latest Game (${dates[dates.length-1]||''})</div>
+        <table style='width:100%;background:transparent;box-shadow:none;font-size:1.04em;'>${summaryRows}</table>
+      </div>
+      <div style='font-size:2.2em;opacity:0.22;'>🏀</div>
+    </div>
+    <div class='glass' style='max-width:700px;margin:0 auto 1.5em auto;padding:1.2em 1em;'>
+      <div style='font-size:1.09em;font-weight:700;margin-bottom:0.6em;color:#1976d2;'>All Games Overview</div>
+      <div style='overflow-x:auto;'>
+      <table style='width:100%;min-width:430px;background:transparent;box-shadow:none;'>
+        <thead><tr><th>Date</th>${BASKETBALL_METRICS.map(m=>`<th>${basketballMetricIcon(m)} ${m}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${dates.map(d => `<tr><td style='font-weight:600;'>${d}</td>${BASKETBALL_METRICS.map(m=>`<td>${games[d][m]!==undefined?games[d][m]:0}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div class='chart-container'><canvas id='trendChart' width='400' height='200'></canvas></div>
+    <div style='font-size:0.97em;color:#555;'>Each line shows a Basketball metric per game. Hover for values.</div>
+    <div style='height:30px;'></div>
+  `;
+}
+function setTrendMetric(m) { state.trendMetric = m; renderApp(); }
+function drawChart() {
+  let stats = state.stats.filter(s => s.sport==='Basketball');
+  if (!stats.length) return;
+  // Group by game/date
+  let games = {};
+  stats.forEach(s => {
+    if (!games[s.date]) games[s.date] = {};
+    games[s.date][s.type] = Number(s.value);
+  });
+  let dates = Object.keys(games).sort();
+  if (!dates.length) return;
+  let datasets = BASKETBALL_METRICS.map((m,i) => ({
+    label: m,
+    data: dates.map(d => games[d][m] || 0),
+    borderColor: `hsl(${i*55},70%,45%)`,
+    backgroundColor: `hsl(${i*55},70%,85%)`,
+    fill: false,
+    tension: 0.2,
+    pointRadius: 4,
+    pointHoverRadius: 7
+  }));
+  if(window.trendChart) window.trendChart.destroy();
+  let ctx = document.getElementById('trendChart').getContext('2d');
+  window.trendChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: dates, datasets },
+    options: {
+      responsive:true,
+      plugins: { legend: { position: 'top', labels: { font: { size: 15 } } } },
+      animation: { duration: 1200, easing: 'easeOutQuart' },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+
+// Dashboard: show demo data expand if no stats
+function renderDashboard() {
+  loadStats();
+  const stats = state.stats;
+  const contentDiv = document.getElementById('dashboard-content');
+  const demoDiv = document.getElementById('demo-expand-holder');
+  if (stats.length === 0) {
+    demoDiv.innerHTML = `
+      <div style='text-align:center;margin-top:2.5em;'>
+        <button id='show-demo-btn' style='padding:0.9em 2.3em;font-size:1.18em;border-radius:2em;background:linear-gradient(90deg,#a5b4fc 60%,#fbc2eb 100%);box-shadow:0 2px 12px #a5b4fc33;font-weight:700;color:#222;cursor:pointer;transition:transform 0.13s;'>✨ Show Demo Data</button>
+      </div>
+    `;
+    document.getElementById('show-demo-btn').onclick = function() {
+      demoDiv.innerHTML = `
+        <div class='glass' style='max-width:520px;margin:2em auto 0 auto;padding:2em 1.2em 1.5em 1.2em;animation:fadein 0.7s;'>
+          <div style='font-size:1.25em;font-weight:700;margin-bottom:0.6em;color:#1976d2;'>Demo Basketball Games</div>
+          <div style='font-size:1.05em;margin-bottom:1em;'>Preview stats for 3 real games, with all metrics (points, assists, rebounds, etc) filled in. See how Trends and AI work!</div>
+          <div style='overflow-x:auto;'>
+            <table style='width:100%;min-width:430px;background:transparent;box-shadow:none;'>
+              <thead><tr><th>Date</th><th>Points</th><th>Assists</th><th>Rebounds</th><th>Steals</th><th>Blocks</th><th>Turnovers</th><th>Fouls</th></tr></thead>
+              <tbody>
+                <tr><td>2025-06-01</td><td>24</td><td>5</td><td>8</td><td>2</td><td>1</td><td>3</td><td>2</td></tr>
+                <tr><td>2025-06-03</td><td>18</td><td>7</td><td>10</td><td>1</td><td>0</td><td>2</td><td>3</td></tr>
+                <tr><td>2025-06-05</td><td>30</td><td>4</td><td>11</td><td>3</td><td>2</td><td>1</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <button id='import-demo-btn' style='margin-top:1.5em;padding:0.85em 2.2em;font-size:1.13em;border-radius:2em;background:linear-gradient(90deg,#fbc2eb 60%,#a5b4fc 100%);box-shadow:0 2px 12px #fbc2eb33;font-weight:700;color:#222;cursor:pointer;transition:transform 0.13s;'>Import Demo Data</button>
+        </div>
+      `;
+      document.getElementById('import-demo-btn').onclick = function() {
+        localStorage.removeItem('sports_stats');
+        loadStats();
+        renderApp();
+      };
+    };
+    contentDiv.innerHTML = '';
+    return;
+  }
+  demoDiv.innerHTML = '';
+  // Group basketball stats by date
+  let games = {};
+  stats.filter(s=>s.sport==='Basketball').forEach(s => {
+    if (!games[s.date]) games[s.date] = {date: s.date, notes: s.notes, stats: {}};
+    games[s.date].stats[s.type] = s.value;
+    if (s.notes) games[s.date].notes = s.notes;
+  });
+  let gameDates = Object.keys(games).sort().reverse();
+  // Dashboard table: one row per game, expand for all stats
+  contentDiv.innerHTML = `
+    <h2>Basketball Games</h2>
+    <div style='display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;'>
+      <label>From <input type='date' onchange='setFilterFrom(this.value)' value='${state.filterFrom}'></label>
+      <label>To <input type='date' onchange='setFilterTo(this.value)' value='${state.filterTo}'></label>
+      <button onclick='clearFilters()' style='width:auto;background:#888;'>Clear</button>
+      <button onclick='exportCSV()' style='width:auto;background:#2e7d32;'>Export CSV</button>
+      <button onclick='toggleDark()' style='width:auto;background:#222;'>${state.dark?'Light':'Dark'} Mode</button>
+    </div>
+    <table style='width:100%;background:transparent;box-shadow:none;'>
+      <thead><tr><th>Date</th><th>Points</th><th>Assists</th><th>Expand</th></tr></thead>
+      <tbody>
+        ${gameDates.length ? gameDates.map((d,idx) => {
+          let g = games[d];
+          return `<tr class='game-row'><td>${d}</td><td>${g.stats['Points']||0}</td><td>${g.stats['Assists']||0}</td><td><button onclick='toggleGameExpand("${d}")' id='expand-btn-${d}'>▼</button></td></tr>
+            <tr id='expand-row-${d}' style='display:none;background:#f7fafd;'><td colspan=4 style='padding:0;'>
+              <div class='glass' style='margin:0.5em 0.5em;'>
+                <b>Full Stats:</b><br>
+                ${BASKETBALL_METRICS.map(m=>`${basketballMetricIcon(m)} <b>${m}:</b> ${g.stats[m]!==undefined?g.stats[m]:0}`).join(' &nbsp; ')}
+                ${g.notes?`<br><b>Notes:</b> ${g.notes}`:''}
+              </div>
+            </td></tr>`;
+        }).join('') : `<tr><td colspan=4 style='text-align:center;color:#888;'>No games found.</td></tr>`}
+      </tbody>
+    </table>
+    <script>
+      window.toggleGameExpand = function(date) {
+        var row = document.getElementById('expand-row-'+date);
+        var btn = document.getElementById('expand-btn-'+date);
+        if (!row || !btn) return;
+        if (row.style.display==='none') { row.style.display='table-row'; btn.innerHTML='▲'; }
+        else { row.style.display='none'; btn.innerHTML='▼'; }
+      }
+    <\/script>
+  `;
+}
+
+
+
+// Initial render
+renderApp();
+window.login = login;
+window.renderApp = renderApp;
+window.setTab = setTab;
+window.editStat = editStat;
+window.delStat = delStat;
+window.submitStat = submitStat;
+window.cancelEdit = cancelEdit;
+window.logout = logout;
+window.updateMetricOptions = updateMetricOptions;
+
+// --- AI Tab ---
+function renderAICombined() {
+  const presetPrompts = [
+    "Suggest 3 drills to improve my shooting",
+    "How can I improve my defense?",
+    "What are my strengths based on my stats?",
+    "How do I reduce turnovers?"
+  ];
+  return `
+    <div class='glass' style='margin-bottom:2em;'>
+      <h2 style='display:flex;align-items:center;gap:0.6em;'><span style="font-size:1.35em;">🤖</span> AI Assistant <span style="font-size:0.8em;color:#1976d2;">(ChatGPT)</span></h2>
+      <div style='margin-bottom:1.2em;font-size:1.07em;color:#1976d2;background:#e3eafc33;padding:0.9em 1em 0.7em 1em;border-radius:10px;'>
+        <b>How to use:</b> Ask any sports question!<br>
+        <ul style='margin:0.7em 0 0.5em 1.1em;padding:0 0 0 0.5em;color:#444;'>
+          <li>Ask for <b>basketball drill suggestions</b> (e.g. "Suggest 3 drills to improve my shooting")</li>
+          <li>Request <b>personalized advice</b> based on your stats (e.g. "What should I work on based on my last 3 games?")</li>
+          <li>Get <b>trends, analysis, or tips</b> for any sport you track</li>
+          <li>Any other sports question—just ask!</li>
+        </ul>
+      </div>
+      <form onsubmit='askAI(event)' style='margin-bottom:0;'>
+        <label style='font-weight:600;margin-bottom:0.5em;'>
+          <span style='display:flex;align-items:center;gap:0.5em;'>
+            <span style='font-size:1.15em;'>💬</span> Type your question below:
+          </span>
+          <input name='q' required placeholder='e.g. Suggest 3 drills to improve my shooting' style='margin-top:0.3em;'>
+        </label>
+        <button type='submit' ${state.aiLoading?'disabled':''} style='margin-top:0.7em;font-size:1.08em;'>
+          <span style='font-size:1.1em;'>✨</span> Ask AI
+        </button>
+      </form>
+      <div id='ai-status' style='margin-top:1.5em;min-height:3em;'>
+        ${state.aiLoading ? `<div class='ai-loading'><span style='font-size:1.3em;'>⏳</span> Thinking...</div>` : ''}
+        ${state.aiError ? `<div class='ai-error'><span style='font-size:1.2em;'>❌</span> ${state.aiError}</div>` : ''}
+        ${state.aiAnswer ? `<div class='ai-answer'><span style='font-size:1.2em;'>🧠</span> ${state.aiAnswer}</div>` : ''}
+      </div>
+      <div style='font-size:0.96em;color:#888;margin-top:2em;text-align:right;'>
+        <span style='font-size:1.1em;'>🔒</span> Powered by OpenAI ChatGPT. Your stats and questions are sent securely to OpenAI only.
+      </div>
+    </div>
+  `;
+}
+async function askAI(e) {
+  e.preventDefault();
+  const q = e.target.q.value;
+  state.aiLoading = true;
+  state.aiAnswer = '';
+  state.aiError = '';
+  renderApp();
+  try {
+    const stats = state.stats;
+    const prompt = `Here are my sports stats (JSON): ${JSON.stringify(stats)}\n\nUser question: ${q}\n\nAnswer as my AI sports assistant:`;
+    const messages = [
+      { role: 'system', content: 'You are a helpful sports coaching assistant. Provide clear, actionable advice.' },
+      { role: 'user', content: `${prompt}` }
+    ];
+
+    const res = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages })
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(`API error: ${res.statusText} - ${errorData.error}`);
+    }
+
+    const data = await res.json();
+    const answer = data.choices[0].message.content;
+    state.aiAnswer = answer.trim();
+    state.aiLoading = false;
+    state.aiError = '';
+    renderApp();
+  } catch (err) {
+    state.aiError = 'Error: '+err.message;
+    state.aiLoading = false;
+    renderApp();
+  }
+}
+window.setAIKey = setAIKey;
+window.clearAIKey = clearAIKey;
+window.askAI = askAI;
+
+// Ensure the app renders on page load
+renderApp();
+window.login = login;
+window.renderApp = renderApp;
+window.setTab = setTab;
+window.editStat = editStat;
+window.delStat = delStat;
+window.submitStat = submitStat;
+window.cancelEdit = cancelEdit;
+window.logout = logout;
+window.updateMetricOptions = updateMetricOptions;
+</script>
+</body>
+</html>
