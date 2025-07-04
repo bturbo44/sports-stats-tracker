@@ -289,6 +289,7 @@ window.setFilterMetric = function(m) {
   renderDashboard();
 };
 function renderApp() {
+  console.log(`renderApp called. Logged in: ${state.loggedIn}`);
   // Apply dark mode
   document.body.style.background = state.dark ? '#222' : '';
   document.body.style.color = state.dark ? '#eee' : '';
@@ -892,15 +893,23 @@ window.updateMetricOptions = updateMetricOptions;
 // Netlify Identity Integration
 window.addEventListener('DOMContentLoaded', () => {
   if (window.netlifyIdentity) {
+    console.log('Netlify Identity widget found.');
+
     netlifyIdentity.on('init', user => {
+      console.log('Netlify Identity: init event');
       if (user) {
+        console.log('User found on init:', user);
         state.loggedIn = true;
         loadStats();
+      } else {
+        console.log('No user found on init.');
       }
       renderApp();
     });
 
     netlifyIdentity.on('login', user => {
+      console.log('Netlify Identity: login event');
+      console.log('User logged in:', user);
       state.loggedIn = true;
       loadStats();
       renderApp();
@@ -908,12 +917,15 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     netlifyIdentity.on('logout', () => {
+      console.log('Netlify Identity: logout event');
       state.loggedIn = false;
       state.tab = 0;
       renderApp();
     });
 
     netlifyIdentity.init();
+  } else {
+    console.log('Netlify Identity widget not found.');
   }
 });
 </script>
