@@ -214,8 +214,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
-alert('Cascade Test: The script is running!');
-
 const BASKETBALL_METRICS = ['Points', 'Assists', 'Rebounds', 'Steals', 'Blocks', 'Turnovers', 'Fouls'];
 
 // Drills data and AI drill suggestion
@@ -895,21 +893,29 @@ window.updateMetricOptions = updateMetricOptions;
 // Netlify Identity Integration
 window.addEventListener('DOMContentLoaded', () => {
   if (window.netlifyIdentity) {
+    netlifyIdentity.on('init', user => {
+      if (user) {
+        state.loggedIn = true;
+        loadStats();
+      }
+      renderApp();
+    });
+
     netlifyIdentity.on('login', user => {
       state.loggedIn = true;
+      loadStats();
       renderApp();
       netlifyIdentity.close();
     });
 
     netlifyIdentity.on('logout', () => {
       state.loggedIn = false;
+      state.tab = 0;
       renderApp();
     });
 
-    netlifyIdentity.on('init', user => {
-      state.loggedIn = !!user;
-      renderApp();
-    });
+    // Initialize the widget
+    netlifyIdentity.init();
   }
 });
 </script>
