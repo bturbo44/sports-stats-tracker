@@ -214,7 +214,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
-console.log('Main script block started.');
+alert('Cascade Test: The script is running!');
+
 const BASKETBALL_METRICS = ['Points', 'Assists', 'Rebounds', 'Steals', 'Blocks', 'Turnovers', 'Fouls'];
 
 // Drills data and AI drill suggestion
@@ -892,48 +893,25 @@ window.logout = logout;
 window.updateMetricOptions = updateMetricOptions;
 
 // Netlify Identity Integration
-function setupNetlifyIdentity() {
-  console.log('Attempting to set up Netlify Identity...');
+window.addEventListener('DOMContentLoaded', () => {
   if (window.netlifyIdentity) {
-    console.log('Netlify Identity widget found.');
-
-    netlifyIdentity.on('init', user => {
-      console.log('Netlify Identity: init event');
-      if (user) {
-        console.log('User found on init:', user);
-        state.loggedIn = true;
-        loadStats();
-      } else {
-        console.log('No user found on init.');
-      }
-      renderApp();
-    });
-
     netlifyIdentity.on('login', user => {
-      console.log('Netlify Identity: login event');
-      console.log('User logged in:', user);
       state.loggedIn = true;
-      loadStats();
       renderApp();
       netlifyIdentity.close();
     });
 
     netlifyIdentity.on('logout', () => {
-      console.log('Netlify Identity: logout event');
       state.loggedIn = false;
-      state.tab = 0;
       renderApp();
     });
 
-    netlifyIdentity.init();
-  } else {
-    console.log('Netlify Identity widget not found. Retrying in 1 second.');
-    setTimeout(setupNetlifyIdentity, 1000);
+    netlifyIdentity.on('init', user => {
+      state.loggedIn = !!user;
+      renderApp();
+    });
   }
-}
-
-// Start the setup
-setupNetlifyIdentity();
+});
 </script>
 </body>
 </html>
